@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CloudflareDDNSUpdater": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
