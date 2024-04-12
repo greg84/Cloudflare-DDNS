@@ -4,40 +4,40 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-namespace CloudflareDDNSUpdater {
-    class Program {
-        private static async Task Main() {
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
+namespace CloudflareDDNSUpdater;
 
-            var serviceProvider = new ServiceCollection()
-                .AddLogging(builder => {
-                    builder.AddConsole(options => {
-                        options.TimestampFormat = "dd MMM hh:mm:ss ";
-                    });
+internal class Program {
+    private static async Task Main() {
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
 
-                    builder.AddConfiguration(configuration);
-                })
-                .AddTransient<DnsUpdater>()
-                .AddTransient(p => configuration)
-                .BuildServiceProvider();
+        var serviceProvider = new ServiceCollection()
+            .AddLogging(builder => {
+                builder.AddSimpleConsole(options => {
+                    options.TimestampFormat = "dd MMM hh:mm:ss ";
+                });
 
-            while (true) {
-                var dnsUpdater = serviceProvider.GetService<DnsUpdater>();
-                var logger = serviceProvider.GetService<ILogger<Program>>();
+                builder.AddConfiguration(configuration);
+            })
+            .AddTransient<DnsUpdater>()
+            .AddTransient(p => configuration)
+            .BuildServiceProvider();
 
-                try {
-                    await dnsUpdater.Update();
-                }
-                catch (Exception ex) {
-                    logger.LogError(ex, "Error during DNS update.");
-                }
+        while (true) {
+            var dnsUpdater = serviceProvider.GetService<DnsUpdater>();
+            var logger = serviceProvider.GetService<ILogger<Program>>();
 
-                logger.LogTrace("Waiting for next update.");
-
-                await Task.Delay(TimeSpan.FromMinutes(15));
+            try {
+                await dnsUpdater.Update();
             }
+            catch (Exception ex) {
+                logger.LogError(ex, "Error during DNS update");
+            }
+
+            logger.LogTrace("Waiting for next update");
+
+            await Task.Delay(TimeSpan.FromMinutes(15));
         }
     }
 }
